@@ -4,6 +4,7 @@ description: Fetch the rendered content of a Wiki.js page from the Netzbegrünun
 """
 
 import html
+import os
 import re
 from urllib.parse import urlsplit, unquote
 import requests
@@ -12,6 +13,9 @@ from pydantic import Field
 # Hard-coded Wiki.js base URL (no trailing slash) and content locale.
 WIKIJS_URL = "https://doku.netzbegruenung.de"
 WIKIJS_LOCALE = "de"
+# Optional Wiki.js API token. Leave empty to use the WIKIJS_API_KEY env var
+# instead, or to make unauthenticated requests against a public wiki.
+WIKIJS_API_KEY = ""
 
 
 def _resolve_path(page: str) -> str:
@@ -83,8 +87,13 @@ class Tools:
 
         url = f"{WIKIJS_URL}/{WIKIJS_LOCALE}/{path}"
 
+        headers = {}
+        token = WIKIJS_API_KEY or os.getenv("WIKIJS_API_KEY")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+
         try:
-            resp = requests.get(url, timeout=15)
+            resp = requests.get(url, headers=headers, timeout=15)
         except requests.RequestException as e:
             return f"Error contacting Wiki.js: {e}"
 

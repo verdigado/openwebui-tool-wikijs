@@ -10,11 +10,14 @@ from pydantic import Field
 # Hard-coded Wiki.js base URL (no trailing slash) and content locale.
 WIKIJS_URL = "https://doku.netzbegruenung.de"
 WIKIJS_LOCALE = "de"
+# Optional Wiki.js API token. Leave empty to use the WIKIJS_API_KEY env var
+# instead, or to make unauthenticated requests against a public wiki.
+WIKIJS_API_KEY = ""
 
 
 def _graphql(query: str, variables: dict) -> dict:
     headers = {"Content-Type": "application/json"}
-    token = os.getenv("WIKIJS_API_KEY")
+    token = WIKIJS_API_KEY or os.getenv("WIKIJS_API_KEY")
     if token:
         headers["Authorization"] = f"Bearer {token}"
     response = requests.post(
